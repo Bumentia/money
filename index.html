@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบันทึกเวลาสอนแบดมินตัน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* animation fade-in */
+    .fade-in {
+      animation: fadeIn 0.6s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-white min-h-screen flex items-center justify-center p-6">
+
+  <div class="max-w-2xl w-full bg-white p-6 rounded-2xl shadow-lg border border-green-200">
+    <h1 class="text-3xl font-bold mb-6 text-green-700 text-center">🏸 บันทึกเวลาสอนแบดมินตัน</h1>
+    
+    <!-- ฟอร์มกรอกข้อมูล -->
+    <div class="grid gap-4 sm:grid-cols-3 mb-4">
+      <select id="dayInput" class="border p-2 rounded-lg w-full">
+        <option value="">เลือกวัน</option>
+        <option>จันทร์</option>
+        <option>อังคาร</option>
+        <option>พุธ</option>
+        <option>พฤหัสบดี</option>
+        <option>ศุกร์</option>
+        <option>เสาร์</option>
+        <option>อาทิตย์</option>
+      </select>
+
+      <select id="typeInput" class="border p-2 rounded-lg w-full">
+        <option value="">รูปแบบ</option>
+        <option>เดี่ยว</option>
+        <option>กลุ่ม</option>
+      </select>
+
+      <input type="text" id="nameInput" placeholder="ชื่อเด็ก/กลุ่ม" class="border p-2 rounded-lg w-full">
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 mb-4">
+      <input type="number" id="hourInput" placeholder="จำนวนชั่วโมง" class="border p-2 rounded-lg w-full">
+      <select id="feeInput" class="border p-2 rounded-lg w-full">
+        <option value="250">250 บาท</option>
+        <option value="300">300 บาท</option>
+      </select>
+    </div>
+
+    <button onclick="addRecord()" 
+      class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md transform transition active:scale-95">
+      ➕ เพิ่มบันทึก
+    </button>
+
+    <!-- Progress Bar -->
+    <div class="mt-6">
+      <p class="text-sm font-semibold text-gray-600">ความคืบหน้าเป้าหมาย 20 ชั่วโมง</p>
+      <div class="w-full bg-gray-200 rounded-full h-4 mt-1">
+        <div id="progressBar" class="bg-green-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <hr class="my-6">
+
+    <!-- ตาราง -->
+    <h2 class="text-xl font-semibold mb-3 text-green-700">📅 ตารางบันทึก</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full border text-center text-sm">
+        <thead>
+          <tr class="bg-green-100">
+            <th class="border px-2 py-1">วัน</th>
+            <th class="border px-2 py-1">ประเภท</th>
+            <th class="border px-2 py-1">ชื่อ</th>
+            <th class="border px-2 py-1">ชั่วโมง</th>
+            <th class="border px-2 py-1">ค่าใช้จ่าย</th>
+          </tr>
+        </thead>
+        <tbody id="recordTable"></tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 flex justify-between text-lg font-bold text-green-700">
+      <p>รวม: <span id="totalHours">0</span> ชั่วโมง</p>
+      <p>รวมรายได้: <span id="totalFee">0</span> บาท</p>
+    </div>
+
+    <button onclick="newWeek()" 
+      class="mt-6 w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-md transform transition active:scale-95">
+      🔄 เริ่มสัปดาห์ใหม่
+    </button>
+  </div>
+
+  <script>
+    let records = JSON.parse(localStorage.getItem("badminton_records")) || [];
+
+    function addRecord() {
+      const day = document.getElementById("dayInput").value;
+      const type = document.getElementById("typeInput").value;
+      const name = document.getElementById("nameInput").value.trim();
+      const hours = parseFloat(document.getElementById("hourInput").value);
+      const fee = parseFloat(document.getElementById("feeInput").value);
+
+      if (!day || !type || !name || isNaN(hours)) {
+        alert("กรุณากรอกข้อมูลให้ครบ");
+        return;
+      }
+
+      records.push({ day, type, name, hours, fee });
+      localStorage.setItem("badminton_records", JSON.stringify(records));
+      renderTable();
+      
+      // reset input
+      document.getElementById("nameInput").value = "";
+      document.getElementById("hourInput").value = "";
+    }
+
+    function renderTable() {
+      const table = document.getElementById("recordTable");
+      table.innerHTML = "";
+      let totalHours = 0, totalFee = 0;
+
+      records.forEach(r => {
+        totalHours += r.hours;
+        totalFee += r.fee;
+
+        const row = document.createElement("tr");
+        row.classList.add("fade-in", "hover:bg-green-50");
+        row.innerHTML = `
+          <td class="border px-2 py-1">${r.day}</td>
+          <td class="border px-2 py-1">${r.type}</td>
+          <td class="border px-2 py-1">${r.name}</td>
+          <td class="border px-2 py-1">${r.hours}</td>
+          <td class="border px-2 py-1">${r.fee}</td>
+        `;
+        table.appendChild(row);
+      });
+
+      document.getElementById("totalHours").innerText = totalHours;
+      document.getElementById("totalFee").innerText = totalFee;
+
+      // อัปเดต progress bar
+      let percent = Math.min((totalHours / 20) * 100, 100);
+      document.getElementById("progressBar").style.width = percent + "%";
+    }
+
+    function newWeek() {
+      if (confirm("แน่ใจหรือไม่ที่จะเริ่มสัปดาห์ใหม่?")) {
+        records = [];
+        localStorage.setItem("badminton_records", JSON.stringify(records));
+        renderTable();
+      }
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>
