@@ -43,7 +43,17 @@
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 mb-4">
-      <input type="number" id="hourInput" placeholder="จำนวนชั่วโมง" class="border p-2 rounded-lg w-full">
+      <!-- เลือกชั่วโมง -->
+      <select id="hourInput" class="border p-2 rounded-lg w-full">
+        <option value="">เลือกเวลา</option>
+        <option value="1">1 ชั่วโมง</option>
+        <option value="1.5">1 ชั่วโมง 30 นาที</option>
+        <option value="2">2 ชั่วโมง</option>
+        <option value="2.5">2 ชั่วโมง 30 นาที</option>
+        <option value="3">3 ชั่วโมง</option>
+      </select>
+
+      <!-- rate เฉพาะ 250 / 300 -->
       <select id="feeInput" class="border p-2 rounded-lg w-full">
         <option value="250">250 บาท/ชั่วโมง</option>
         <option value="300">300 บาท/ชั่วโมง</option>
@@ -109,7 +119,7 @@
         return;
       }
 
-      const totalFee = hours * feeRate; // ✅ คำนวณราคาตามชั่วโมง
+      const totalFee = hours * feeRate;
 
       records.push({ day, type, name, hours, fee: totalFee });
       localStorage.setItem("badminton_records", JSON.stringify(records));
